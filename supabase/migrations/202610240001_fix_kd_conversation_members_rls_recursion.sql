@@ -15,13 +15,14 @@ stable
 security definer
 set search_path = pg_catalog, public
 as $$
-  select exists (
-    select 1
-    from public.kd_conversation_members cm
-    where cm.conversation_id = p_conversation_id
-      and cm.user_id = p_user_id
-      and (p_roles is null or cm.role = any(p_roles))
-  );
+  select p_user_id = auth.uid()
+    and exists (
+      select 1
+      from public.kd_conversation_members cm
+      where cm.conversation_id = p_conversation_id
+        and cm.user_id = auth.uid()
+        and (p_roles is null or cm.role = any(p_roles))
+    );
 $$;
 
 revoke all on function public.kd_is_conversation_member(uuid, uuid, text[]) from public;
