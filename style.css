@@ -6,7 +6,7 @@
 
 
 /* KD Messenger refreshed desktop layout */
-.app-shell{grid-template-columns:198px minmax(230px,27%) minmax(360px,1fr) 0}
+.app-shell{grid-template-columns:198px minmax(230px,27%) minmax(360px,1fr)}
 .sidebar{padding:0 10px;background:linear-gradient(180deg,#0b1321,#080d17);border-right:1px solid #17263b}
 .brand-row{height:82px;padding:0 8px;gap:12px}.brand-mark{background:linear-gradient(135deg,#795cff,#4030d9);box-shadow:0 0 24px #583b9b55;border-radius:12px}
 .me-card{display:none}.search-box{margin:8px 4px 12px;background:#111c2d;border:1px solid #1b2a41;border-radius:12px}.side-tabs{display:flex;flex-direction:column;gap:5px;padding:0 0 12px}.side-tabs button{justify-content:flex-start;gap:12px;padding:12px 13px;min-height:43px;border-radius:11px;font-size:13px;color:#9baecb}.side-tabs button.active{background:linear-gradient(100deg,#25205a,#172747);color:#a9a0ff;border:1px solid #333278}.side-tabs button span{flex:1;text-align:left}.side-tabs em{margin-left:auto}.new-badge{font-style:normal;font-size:9px;background:#6947ff;color:#fff;padding:3px 5px;border-radius:5px}.section-label{margin:5px 8px}.sidebar-bottom{margin-top:auto;display:flex;flex-direction:column;gap:5px;padding:12px 0 8px}.bottom-btn{justify-content:flex-start;gap:12px;padding:12px 13px;border-radius:10px;background:transparent;border:0;color:#9baecb;font-size:13px}.bottom-btn:hover{background:#141f32}
