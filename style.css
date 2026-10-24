@@ -71,3 +71,11 @@ body{background:#0b1220;color:#e7edf8;font-family:-apple-system,BlinkMacSystemFo
 .ai-thread{display:flex;flex-direction:column;gap:10px;overflow:auto;flex:1}.ai-message{max-width:95%;align-self:flex-start;padding:12px 14px;border-radius:12px;background:#17263b;border:1px solid #2a3a54;font-size:13px;line-height:1.6;color:#dce6f6;white-space:pre-wrap;overflow-wrap:anywhere}.ai-message.ai-user{align-self:flex-end;background:#4139ad;border-color:#554bd5}
 .ai-compose{margin-top:auto;border:1px solid #2a3b57;background:#111e31;border-radius:14px;padding:6px}.ai-compose input{font-size:13px}.ai-compose button{background:#6656e8;border-radius:10px;font-size:18px}
 @media(max-width:1050px){.app-shell,.app-shell.ai-open{grid-template-columns:180px minmax(220px,30%) minmax(300px,1fr)!important}.ai-panel{position:fixed;right:0;top:0;bottom:0;width:min(360px,90vw);z-index:40;box-shadow:-20px 0 60px #0009}}
+
+/* Neutral startup state: never imply a conversation is already open */
+.messages.empty-state{align-items:center;justify-content:center;text-align:center;background:radial-gradient(ellipse at 50% 45%,#17243a 0%,#0e1726 48%,#0c1422 80%)}
+.empty-state-card{width:min(420px,90%);padding:34px 28px;border:1px solid #273750;border-radius:20px;background:rgba(20,33,52,.78);box-shadow:0 18px 60px rgba(0,0,0,.12)}
+.empty-state-mark{display:grid;place-items:center;width:54px;height:54px;margin:0 auto 18px;border-radius:15px;background:#6757d9;color:#fff;font-weight:700;letter-spacing:.04em}
+.empty-state-card h2{font-size:20px;font-weight:650;margin:0 0 10px;color:#e8eef8}
+.empty-state-card p{font-size:13px;line-height:1.7;color:#93a5c0;margin:0}
+#messageInput:disabled{cursor:not-allowed;opacity:.55}
