@@ -1,5 +1,5 @@
 (()=>{
-const sb=window.supabase.createClient('https://qqofizfqkctycyeafgsa.supabase.co','sb_publishable_MTZuMyuzb0XdtBy3GZIQZw_pHbXc9xK');
+const sb=window.supabase.createClient('https://qqofizfqkctycyeafgsa.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxb2ZpemZxa2N0eWN5ZWFmZ3NhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5OTM4NTQsImV4cCI6MjEwMjU2OTg1NH0.QJVb9ZuHcl89Vr11NJJiPuzASlqIFgXhR9goWk1_YAE');
 const $=q=>document.querySelector(q);
 const toast=t=>{const x=$('#toast');if(x){x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),1800)}};
 async function uid(){return (await sb.auth.getSession()).data.session?.user?.id}
