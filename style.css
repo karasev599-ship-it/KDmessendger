@@ -79,3 +79,11 @@ body{background:#0b1220;color:#e7edf8;font-family:-apple-system,BlinkMacSystemFo
 .empty-state-card h2{font-size:20px;font-weight:650;margin:0 0 10px;color:#e8eef8}
 .empty-state-card p{font-size:13px;line-height:1.7;color:#93a5c0;margin:0}
 #messageInput:disabled{cursor:not-allowed;opacity:.55}
+
+/* Initial empty state: no fake conversation and no empty black canvas */
+.messages.empty-state{display:flex;align-items:center;justify-content:center;text-align:center;background:radial-gradient(ellipse at 50% 42%,#19263b 0%,#111c2d 42%,#0c1422 78%)}
+.empty-state-card{width:min(420px,90%);padding:32px 28px;border:1px solid #293951;border-radius:18px;background:rgba(19,31,49,.9);box-shadow:0 20px 65px rgba(0,0,0,.18)}
+.empty-state-mark{display:grid;place-items:center;width:54px;height:54px;margin:0 auto 18px;border-radius:15px;background:linear-gradient(145deg,#7969ef,#4e43b9);color:#fff;font-weight:700;letter-spacing:.04em}
+.empty-state-card h2{font-size:20px;font-weight:650;margin:0 0 10px;color:#e8eef8}
+.empty-state-card p{font-size:13px;line-height:1.7;color:#9bacc5;margin:0}
+#messageInput:disabled{cursor:not-allowed;opacity:.55}
