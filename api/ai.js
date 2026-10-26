@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const SUPABASE_URL = 'https://qqofizfqkctycyeafgsa.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxb2ZpemZxa2N0eWN5ZWFmZ3NhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5OTM4NTQsImV4cCI6MjEwMjU2OTg1NH0.QJVb9ZuHcl89Vr11NJJiPuzASlqIFgXhR9goWk1_YAE';
 const WINDOW_MS = 60_000;
@@ -28,12 +29,52 @@ module.exports = async function handler(req, res) {
     if (!account || !account.id) return res.status(401).json({ error: 'Не удалось проверить аккаунт.' });
 
     const now = Date.now();
-    const entry = rate.get(account.id);
-    if (entry && now - entry.start < WINDOW_MS && entry.count >= MAX_PER_WINDOW) {
-      return res.status(429).json({ error: 'Слишком много запросов. Подожди минуту и попробуй снова.' });
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (serviceRoleKey) {
+      // Prefer the database-backed limiter in serverless deployments so limits are shared across instances.
+      const subjectHash = crypto.createHash('sha256').update(account.id).digest('hex');
+      const limitResponse = await fetch(SUPABASE_URL + '/rest/v1/rpc/check_api_rate_limit', {
+        method: 'POST',
+        headers: {
+          apikey: serviceRoleKey,
+          Authorization: 'Bearer ' + serviceRoleKey,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          p_bucket: 'kd_ai',
+          p_subject_hash: subjectHash,
+          p_window_seconds: 60,
+          p_max_hits: MAX_PER_WINDOW
+        })
+      });
+
+      if (!limitResponse.ok) {
+        console.error('KD AI rate-limit check failed', limitResponse.status);
+        return res.status(503).json({ error: 'Не удалось проверить лимит запросов. Попробуй позже.' });
+      }
+
+      const allowed = await limitResponse.json();
+      if (allowed !== true) {
+        return res.status(429).json({ error: 'Слишком много запросов. Подожди минуту и попробуй снова.' });
+      }
+    } else {
+      // Fallback for environments without the server-only service-role secret.
+      const entry = rate.get(account.id);
+      if (entry && now - entry.start < WINDOW_MS && entry.count >= MAX_PER_WINDOW) {
+        return res.status(429).json({ error: 'Слишком много запросов. Подожди минуту и попробуй снова.' });
+      }
+      if (!entry || now - entry.start >= WINDOW_MS) rate.set(account.id, { start: now, count: 1 });
+      else entry.count += 1;
+
+      // Prune stale accounts so a long-lived instance does not retain an unbounded Map.
+      if (rate.size > 5000) {
+        for (const [id, item] of rate) {
+          if (now - item.start >= WINDOW_MS) rate.delete(id);
+          if (rate.size <= 4000) break;
+        }
+      }
     }
-    if (!entry || now - entry.start >= WINDOW_MS) rate.set(account.id, { start: now, count: 1 });
-    else entry.count += 1;
 
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
     const message = typeof body.message === 'string' ? body.message.trim() : '';
