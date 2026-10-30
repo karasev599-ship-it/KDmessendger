@@ -21,3 +21,5 @@ jobs:
         run: |
           set -euo pipefail
           find . -type f -name '*.js' -not -path './node_modules/*' -print0 | xargs -0 -n1 node --check
+      - name: Run security regression tests
+        run: node --test tests/security-regression.test.js
