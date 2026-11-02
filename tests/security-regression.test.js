@@ -24,3 +24,10 @@ test('attachment filenames are inserted as text, never parsed as HTML', () => {
 test('database rejects arbitrary reaction strings', () => {
   assert.match(migration, /check \(reaction in \('❤️', '👍'\)\)/i);
 });
+
+test('message escaping preserves literal backslashes while escaping HTML metacharacters', () => {
+  const definition = features.match(/esc=s=>String\(s\?\?''\)\.replace\((\/[^/]+\/g),c=>\((\{[^}]+\}\[c\])\)\)/);
+  assert.ok(definition, 'escape helper must be present in features.js');
+  const esc = new Function(`return (${definition[0].replace(/^esc=/, '')})`)();
+  assert.equal(esc('C:\\folder "name" <tag>'), 'C:\\folder &quot;name&quot; &lt;tag&gt;');
+});
