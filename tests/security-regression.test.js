@@ -80,6 +80,13 @@ test('group poll creation limits request rate and validates question and option 
   assert.ok(groupPollMigration.includes('Poll options must be unique'));
   assert.ok(groupPollMigration.includes('from unnest(p_options) as options(option_text)'));
   assert.ok(groupPollMigration.includes('from unnest(p_option_ids) as options(option_id)'));
+  const createLimitAt = groupPollMigration.indexOf("check_api_rate_limit('group_poll_create'");
+  const createValidationAt = groupPollMigration.indexOf('Poll options must be unique');
+  assert.ok(createLimitAt > createValidationAt, 'invalid poll input must not consume a successful-action rate slot');
+  const voteLimitAt = groupPollMigration.indexOf("check_api_rate_limit('group_poll_vote'");
+  const voteValidationAt = groupPollMigration.indexOf('Single choice poll');
+  const voteWriteAt = groupPollMigration.indexOf('delete from public.kd_group_poll_votes');
+  assert.ok(voteLimitAt > voteValidationAt && voteLimitAt < voteWriteAt, 'only validated votes should consume a rate slot');
 });
 
 test('group poll voting is bounded, rate-limited, member-only, and serialized with closing', () => {
