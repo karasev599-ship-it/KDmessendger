@@ -52,7 +52,7 @@ begin
 
   if exists (
     select 1
-    from unnest(p_options) as option_text
+    from unnest(p_options) as options(option_text)
     where option_text is null
        or length(btrim(option_text)) < 1
        or length(btrim(option_text)) > 100
@@ -62,7 +62,7 @@ begin
 
   select count(*), count(distinct lower(btrim(option_text)))
     into v_option_count, v_distinct_count
-  from unnest(p_options) as option_text;
+  from unnest(p_options) as options(option_text);
 
   if v_option_count <> v_distinct_count then
     raise exception 'Poll options must be unique' using errcode = '22023';
@@ -121,7 +121,7 @@ begin
 
   select count(*), count(distinct option_id)
     into v_option_count, v_distinct_count
-  from unnest(p_option_ids) as option_id;
+  from unnest(p_option_ids) as options(option_id);
 
   if v_option_count <> v_distinct_count then
     raise exception 'Duplicate poll options are not allowed' using errcode = '22023';
@@ -151,7 +151,7 @@ begin
 
   if exists (
     select 1
-    from unnest(p_option_ids) as option_id
+    from unnest(p_option_ids) as options(option_id)
     where not exists (
       select 1
       from public.kd_group_poll_options o
@@ -170,7 +170,7 @@ begin
 
   insert into public.kd_group_poll_votes(poll_id, option_id, user_id)
   select p_poll_id, option_id, v_user
-  from unnest(p_option_ids) as option_id;
+  from unnest(p_option_ids) as options(option_id);
 
   return true;
 end;
