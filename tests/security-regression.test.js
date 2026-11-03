@@ -48,3 +48,21 @@ test('duplicate message UPDATE policy and identical index are removed', () => {
   assert.match(qrAndCleanup, /drop policy if exists kd_messages_sender_delete on public\\.kd_messages/i);
   assert.match(qrAndCleanup, /drop index if exists public\\.kd_messages_conversation_created_idx/i);
 });
+
+const profileSource = fs.readFileSync(path.join(root, 'profile.js'), 'utf8');
+const phonePrivacyMigration = fs.readFileSync(
+  path.join(root, 'supabase', 'migrations', '202611030002_make_phone_discovery_opt_in.sql'),
+  'utf8'
+);
+
+test('profile editor reads and writes the same phone-discovery preference as the server', () => {
+  assert.match(profileSource, /from\('kd_user_privacy'\)\.select\('discover_by_phone'\)/);
+  assert.match(profileSource, /discover_by_phone:discover_by_phone/);
+  assert.doesNotMatch(profileSource, /phone_visible/);
+});
+
+test('phone discovery is opt-in for new or missing privacy records', () => {
+  assert.match(phonePrivacyMigration, /alter column discover_by_phone set default false/i);
+  assert.match(phonePrivacyMigration, /coalesce\(pp\.phone_visible, false\)/i);
+  assert.match(phonePrivacyMigration, /coalesce\(up\.discover_by_phone, false\) = true/i);
+});
