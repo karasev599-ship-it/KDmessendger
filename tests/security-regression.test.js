@@ -31,3 +31,20 @@ test('message escaping preserves literal backslashes while escaping HTML metacha
   const esc = new Function(`return (${definition[0].replace(/^esc=/, '')})`)();
   assert.equal(esc('C:\\folder "name" <tag>'), 'C:\\folder &quot;name&quot; &lt;tag&gt;');
 });
+
+const qrAndCleanup = fs.readFileSync(
+  path.join(root, 'supabase', 'migrations', '202611030001_rate_limit_profile_qr_and_dedupe_message_policies.sql'),
+  'utf8'
+);
+
+test('QR profile resolution applies a per-user limit before checking the supplied token', () => {
+  const limitAt = qrAndCleanup.indexOf("check_api_rate_limit('profile_qr_lookup'");
+  const tokenCheckAt = qrAndCleanup.indexOf('if p_token is null');
+  assert.ok(limitAt >= 0, 'QR lookup must use the shared database rate limiter');
+  assert.ok(tokenCheckAt > limitAt, 'invalid token attempts must also count toward the limit');
+});
+
+test('duplicate message UPDATE policy and identical index are removed', () => {
+  assert.match(qrAndCleanup, /drop policy if exists kd_messages_sender_delete on public\\.kd_messages/i);
+  assert.match(qrAndCleanup, /drop index if exists public\\.kd_messages_conversation_created_idx/i);
+});
