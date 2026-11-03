@@ -78,6 +78,8 @@ test('group poll creation limits request rate and validates question and option 
   assert.ok(groupPollMigration.includes('1 to 240 characters'));
   assert.ok(groupPollMigration.includes('1 to 100 characters'));
   assert.ok(groupPollMigration.includes('Poll options must be unique'));
+  assert.ok(groupPollMigration.includes('from unnest(p_options) as options(option_text)'));
+  assert.ok(groupPollMigration.includes('from unnest(p_option_ids) as options(option_id)'));
 });
 
 test('group poll voting is bounded, rate-limited, member-only, and serialized with closing', () => {
