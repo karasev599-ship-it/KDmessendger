@@ -97,3 +97,15 @@ test('group poll voting is bounded, rate-limited, member-only, and serialized wi
   assert.ok(groupPollMigration.includes('Poll closed'));
   assert.ok(groupPollMigration.includes('Not a member'));
 });
+
+const voteRateLimitMigration = fs.readFileSync(
+  path.join(root, 'supabase', 'migrations', '202611030004_ensure_group_poll_vote_rate_limit.sql'),
+  'utf8'
+);
+
+test('group poll vote rate limiting is present after validation and before vote writes', () => {
+  const validationAt = voteRateLimitMigration.indexOf('Single choice poll');
+  const limitAt = voteRateLimitMigration.indexOf("check_api_rate_limit('group_poll_vote'");
+  const writeAt = voteRateLimitMigration.indexOf('delete from public.kd_group_poll_votes');
+  assert.ok(validationAt >= 0 && limitAt > validationAt && limitAt < writeAt);
+});
