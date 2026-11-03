@@ -56,8 +56,8 @@ const phonePrivacyMigration = fs.readFileSync(
 );
 
 test('profile editor reads and writes the same phone-discovery preference as the server', () => {
-  assert.match(profileSource, /from\('kd_user_privacy'\)\.select\('discover_by_phone'\)/);
-  assert.match(profileSource, /discover_by_phone:discover_by_phone/);
+  assert.ok(profileSource.includes("from('kd_user_privacy').select('discover_by_phone')"));
+  assert.ok(profileSource.includes('discover_by_phone,updated_at:'));
   assert.doesNotMatch(profileSource, /phone_visible/);
 });
 
