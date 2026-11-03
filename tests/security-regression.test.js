@@ -31,3 +31,38 @@ test('message escaping preserves literal backslashes while escaping HTML metacha
   const esc = new Function(`return (${definition[0].replace(/^esc=/, '')})`)();
   assert.equal(esc('C:\\folder "name" <tag>'), 'C:\\folder &quot;name&quot; &lt;tag&gt;');
 });
+
+const qrAndCleanup = fs.readFileSync(
+  path.join(root, 'supabase', 'migrations', '202611030001_rate_limit_profile_qr_and_dedupe_message_policies.sql'),
+  'utf8'
+);
+
+test('QR profile resolution applies a per-user limit before checking the supplied token', () => {
+  const limitAt = qrAndCleanup.indexOf("check_api_rate_limit('profile_qr_lookup'");
+  const tokenCheckAt = qrAndCleanup.indexOf('if p_token is null');
+  assert.ok(limitAt >= 0, 'QR lookup must use the shared database rate limiter');
+  assert.ok(tokenCheckAt > limitAt, 'invalid token attempts must also count toward the limit');
+});
+
+test('duplicate message UPDATE policy and identical index are removed', () => {
+  assert.ok(qrAndCleanup.includes('drop policy if exists kd_messages_sender_delete on public.kd_messages'));
+  assert.ok(qrAndCleanup.includes('drop index if exists public.kd_messages_conversation_created_idx'));
+});
+
+const profileSource = fs.readFileSync(path.join(root, 'profile.js'), 'utf8');
+const phonePrivacyMigration = fs.readFileSync(
+  path.join(root, 'supabase', 'migrations', '202611030002_make_phone_discovery_opt_in.sql'),
+  'utf8'
+);
+
+test('profile editor reads and writes the same phone-discovery preference as the server', () => {
+  assert.ok(profileSource.includes("from('kd_user_privacy').select('discover_by_phone')"));
+  assert.ok(profileSource.includes('discover_by_phone,updated_at:'));
+  assert.doesNotMatch(profileSource, /phone_visible/);
+});
+
+test('phone discovery is opt-in for new or missing privacy records', () => {
+  assert.match(phonePrivacyMigration, /alter column discover_by_phone set default false/i);
+  assert.match(phonePrivacyMigration, /coalesce\(pp\.phone_visible, false\)/i);
+  assert.match(phonePrivacyMigration, /coalesce\(up\.discover_by_phone, false\) = true/i);
+});
