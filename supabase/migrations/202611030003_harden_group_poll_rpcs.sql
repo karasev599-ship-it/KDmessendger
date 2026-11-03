@@ -22,10 +22,6 @@ begin
     raise exception 'Not authenticated' using errcode = '28000';
   end if;
 
-  if not public.check_api_rate_limit('group_poll_create', md5(v_user::text), 60, 5) then
-    raise exception 'Too many poll creation requests; try again later' using errcode = 'P0001';
-  end if;
-
   if not exists (
     select 1
     from public.kd_conversation_members
@@ -68,6 +64,10 @@ begin
     raise exception 'Poll options must be unique' using errcode = '22023';
   end if;
 
+  if not public.check_api_rate_limit('group_poll_create', md5(v_user::text), 60, 5) then
+    raise exception 'Too many poll creation requests; try again later' using errcode = 'P0001';
+  end if;
+
   insert into public.kd_messages(conversation_id, sender_id, body, message_type)
   values (p_conversation_id, v_user, '', 'poll')
   returning id into v_message;
@@ -107,10 +107,6 @@ declare
 begin
   if v_user is null then
     raise exception 'Not authenticated' using errcode = '28000';
-  end if;
-
-  if not public.check_api_rate_limit('group_poll_vote', md5(v_user::text), 60, 60) then
-    raise exception 'Too many poll vote requests; try again later' using errcode = 'P0001';
   end if;
 
   p_option_ids := coalesce(p_option_ids, '{}'::uuid[]);
@@ -163,6 +159,10 @@ begin
 
   if not v_multiple and cardinality(p_option_ids) > 1 then
     raise exception 'Single choice poll' using errcode = '22023';
+  end if;
+
+  if not public.check_api_rate_limit('group_poll_vote', md5(v_user::text), 60, 60) then
+    raise exception 'Too many poll vote requests; try again later' using errcode = 'P0001';
   end if;
 
   delete from public.kd_group_poll_votes
