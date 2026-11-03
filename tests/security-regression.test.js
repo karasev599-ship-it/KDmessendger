@@ -45,8 +45,8 @@ test('QR profile resolution applies a per-user limit before checking the supplie
 });
 
 test('duplicate message UPDATE policy and identical index are removed', () => {
-  assert.match(qrAndCleanup, /drop policy if exists kd_messages_sender_delete on public\\.kd_messages/i);
-  assert.match(qrAndCleanup, /drop index if exists public\\.kd_messages_conversation_created_idx/i);
+  assert.ok(qrAndCleanup.includes('drop policy if exists kd_messages_sender_delete on public.kd_messages'));
+  assert.ok(qrAndCleanup.includes('drop index if exists public.kd_messages_conversation_created_idx'));
 });
 
 const profileSource = fs.readFileSync(path.join(root, 'profile.js'), 'utf8');
