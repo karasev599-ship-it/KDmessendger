@@ -66,3 +66,25 @@ test('phone discovery is opt-in for new or missing privacy records', () => {
   assert.match(phonePrivacyMigration, /coalesce\(pp\.phone_visible, false\)/i);
   assert.match(phonePrivacyMigration, /coalesce\(up\.discover_by_phone, false\) = true/i);
 });
+
+const groupPollMigration = fs.readFileSync(
+  path.join(root, 'supabase', 'migrations', '202611030003_harden_group_poll_rpcs.sql'),
+  'utf8'
+);
+
+test('group poll creation limits request rate and validates question and option input', () => {
+  assert.ok(groupPollMigration.includes("check_api_rate_limit('group_poll_create'"));
+  assert.ok(groupPollMigration.includes('between 2 and 10 options'));
+  assert.ok(groupPollMigration.includes('1 to 240 characters'));
+  assert.ok(groupPollMigration.includes('1 to 100 characters'));
+  assert.ok(groupPollMigration.includes('Poll options must be unique'));
+});
+
+test('group poll voting is bounded, rate-limited, member-only, and serialized with closing', () => {
+  assert.ok(groupPollMigration.includes("check_api_rate_limit('group_poll_vote'"));
+  assert.ok(groupPollMigration.includes('cardinality(p_option_ids) > 10'));
+  assert.ok(groupPollMigration.includes('Duplicate poll options are not allowed'));
+  assert.ok(groupPollMigration.includes('for update'));
+  assert.ok(groupPollMigration.includes('Poll closed'));
+  assert.ok(groupPollMigration.includes('Not a member'));
+});
