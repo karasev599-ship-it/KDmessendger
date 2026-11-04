@@ -123,3 +123,15 @@ test('private profile media is readable only by its owning user', () => {
   assert.ok(profileMediaMigration.includes("bucket_id = 'kd-profile-media'"));
   assert.ok(profileMediaMigration.includes('(storage.foldername(name))[1] = auth.uid()::text'));
 });
+
+const definerSearchPathMigration = fs.readFileSync(
+  path.join(root, 'supabase', 'migrations', '20261104090000_set_trusted_search_paths_for_definers.sql'),
+  'utf8'
+);
+
+test('remaining SECURITY DEFINER routines use a trusted search path', () => {
+  assert.ok(definerSearchPathMigration.includes('alter function public.kd_claim_e2ee_epoch(uuid)'));
+  assert.ok(definerSearchPathMigration.includes('alter function public.kd_get_my_suspension_status()'));
+  assert.ok(definerSearchPathMigration.includes('alter function public.kd_group_update_profile(uuid, text, text, text)'));
+  assert.equal((definerSearchPathMigration.match(/set search_path = pg_catalog, public/gi) || []).length, 3);
+});
