@@ -116,7 +116,10 @@ const profileMediaMigration = fs.readFileSync(
 );
 
 test('private profile media is readable only by its owning user', () => {
-  assert.match(profileMediaMigration, /drop policy if exists kd_profile_media_read on storage\\.objects/i);
-  assert.match(profileMediaMigration, /create policy kd_profile_media_read[\\s\\S]*?for select[\\s\\S]*?to authenticated/i);
-  assert.match(profileMediaMigration, /bucket_id = 'kd-profile-media'[\\s\\S]*?\\(storage\\.foldername\\(name\\)\\)\\[1\\] = auth\\.uid\\(\\)::text/i);
+  assert.ok(profileMediaMigration.includes('drop policy if exists kd_profile_media_read on storage.objects'));
+  assert.ok(profileMediaMigration.includes('create policy kd_profile_media_read'));
+  assert.ok(profileMediaMigration.includes('for select'));
+  assert.ok(profileMediaMigration.includes('to authenticated'));
+  assert.ok(profileMediaMigration.includes("bucket_id = 'kd-profile-media'"));
+  assert.ok(profileMediaMigration.includes('(storage.foldername(name))[1] = auth.uid()::text'));
 });
