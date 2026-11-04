@@ -109,3 +109,14 @@ test('group poll vote rate limiting is present after validation and before vote 
   const writeAt = voteRateLimitMigration.indexOf('delete from public.kd_group_poll_votes');
   assert.ok(validationAt >= 0 && limitAt > validationAt && limitAt < writeAt);
 });
+
+const profileMediaMigration = fs.readFileSync(
+  path.join(root, 'supabase', 'migrations', '20261104085400_restrict_profile_media_read_to_owner.sql'),
+  'utf8'
+);
+
+test('private profile media is readable only by its owning user', () => {
+  assert.match(profileMediaMigration, /drop policy if exists kd_profile_media_read on storage\\.objects/i);
+  assert.match(profileMediaMigration, /create policy kd_profile_media_read[\\s\\S]*?for select[\\s\\S]*?to authenticated/i);
+  assert.match(profileMediaMigration, /bucket_id = 'kd-profile-media'[\\s\\S]*?\\(storage\\.foldername\\(name\\)\\)\\[1\\] = auth\\.uid\\(\\)::text/i);
+});
