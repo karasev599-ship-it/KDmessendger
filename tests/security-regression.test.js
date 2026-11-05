@@ -135,3 +135,28 @@ test('remaining SECURITY DEFINER routines use a trusted search path', () => {
   assert.ok(definerSearchPathMigration.includes('alter function public.kd_group_update_profile(uuid, text, text, text)'));
   assert.equal((definerSearchPathMigration.match(/set search_path = pg_catalog, public/gi) || []).length, 3);
 });
+
+
+const avatarStorageMigration = fs.readFileSync(
+  path.join(root, 'supabase', 'migrations', '202611050001_harden_avatar_storage_uploads.sql'),
+  'utf8'
+);
+
+test('group avatar uploads require a current group owner or admin', () => {
+  assert.ok(avatarStorageMigration.includes("drop policy if exists kd_group_avatar_auth_insert on storage.objects"));
+  assert.ok(avatarStorageMigration.includes("bucket_id = 'kd-messenger-avatars'"));
+  assert.ok(avatarStorageMigration.includes("(storage.foldername(name))[1] = 'groups'"));
+  assert.ok(avatarStorageMigration.includes("cm.user_id = auth.uid()"));
+  assert.ok(avatarStorageMigration.includes("cm.role in ('owner', 'admin')"));
+  assert.ok(avatarStorageMigration.includes("c.kind = 'group'"));
+  assert.ok(avatarStorageMigration.includes("else null::uuid"));
+});
+
+test('public avatar buckets have bounded raster-image uploads', () => {
+  assert.ok(avatarStorageMigration.includes('file_size_limit = 5242880'));
+  assert.ok(avatarStorageMigration.includes("id in ('kd-messenger-avatars', 'kd-profile-avatars')"));
+  assert.ok(avatarStorageMigration.includes("'image/jpeg'"));
+  assert.ok(avatarStorageMigration.includes("'image/png'"));
+  assert.ok(avatarStorageMigration.includes("'image/webp'"));
+  assert.ok(!avatarStorageMigration.toLowerCase().includes('image/svg+xml'));
+});
