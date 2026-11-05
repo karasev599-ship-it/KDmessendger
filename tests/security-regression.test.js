@@ -158,5 +158,5 @@ test('public avatar buckets have bounded raster-image uploads', () => {
   assert.ok(avatarStorageMigration.includes("'image/jpeg'"));
   assert.ok(avatarStorageMigration.includes("'image/png'"));
   assert.ok(avatarStorageMigration.includes("'image/webp'"));
-  assert.doesNotMatch(avatarStorageMigration, /image\\/svg\\+xml/i);
+  assert.ok(!avatarStorageMigration.toLowerCase().includes('image/svg+xml'));
 });
