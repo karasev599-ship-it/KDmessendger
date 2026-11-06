@@ -55,6 +55,8 @@ test('invalid AI payloads are rejected before the shared rate limiter is called'
 
     const cases = [
       { body: '{', status: 400 },
+      { body: 'null', status: 400 },
+      { body: '[]', status: 400 },
       { body: { message: '   ' }, status: 400 },
       { body: { message: 'x'.repeat(6001) }, status: 413 }
     ];
