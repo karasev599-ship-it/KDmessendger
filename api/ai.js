@@ -13,9 +13,6 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: 'Используй POST.' });
   }
 
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) return res.status(503).json({ error: 'AI ещё не настроен: добавь OPENAI_API_KEY в Vercel → Settings → Environment Variables.' });
-
   const authorization = req.headers.authorization || '';
   const token = authorization.startsWith('Bearer ') ? authorization.slice(7) : '';
   if (!token) return res.status(401).json({ error: 'Войди в KD Messenger, чтобы пользоваться AI.' });
@@ -27,6 +24,20 @@ module.exports = async function handler(req, res) {
     if (!verify.ok) return res.status(401).json({ error: 'Сессия недействительна. Войди снова.' });
     const account = await verify.json();
     if (!account || !account.id) return res.status(401).json({ error: 'Не удалось проверить аккаунт.' });
+
+    let body;
+    try {
+      body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
+    } catch {
+      return res.status(400).json({ error: 'Некорректный JSON.' });
+    }
+
+    const message = typeof body.message === 'string' ? body.message.trim() : '';
+    if (!message) return res.status(400).json({ error: 'Напиши вопрос.' });
+    if (message.length > 6000) return res.status(413).json({ error: 'Сообщение слишком длинное (максимум 6000 символов).' });
+
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) return res.status(503).json({ error: 'AI ещё не настроен: добавь OPENAI_API_KEY в Vercel → Settings → Environment Variables.' });
 
     const now = Date.now();
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -75,11 +86,6 @@ module.exports = async function handler(req, res) {
         }
       }
     }
-
-    const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
-    const message = typeof body.message === 'string' ? body.message.trim() : '';
-    if (!message) return res.status(400).json({ error: 'Напиши вопрос.' });
-    if (message.length > 6000) return res.status(413).json({ error: 'Сообщение слишком длинное (максимум 6000 символов).' });
 
     const ai = await fetch('https://api.openai.com/v1/responses', {
       method: 'POST',
