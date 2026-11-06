@@ -7,7 +7,7 @@ const root = path.join(__dirname, '..');
 const features = fs.readFileSync(path.join(root, 'features.js'), 'utf8');
 const media = fs.readFileSync(path.join(root, 'media.js'), 'utf8');
 const migration = fs.readFileSync(
-  path.join(root, 'supabase', 'migrations', '202610300001_restrict_message_reaction_values.sql'),
+  path.join(root, 'supabase', 'migrations', '20261030071905_restrict_message_reaction_values.sql'),
   'utf8'
 );
 
@@ -33,7 +33,7 @@ test('message escaping preserves literal backslashes while escaping HTML metacha
 });
 
 const qrAndCleanup = fs.readFileSync(
-  path.join(root, 'supabase', 'migrations', '202611030001_rate_limit_profile_qr_and_dedupe_message_policies.sql'),
+  path.join(root, 'supabase', 'migrations', '20261103072139_rate_limit_profile_qr_and_dedupe_message_policies.sql'),
   'utf8'
 );
 
@@ -51,7 +51,7 @@ test('duplicate message UPDATE policy and identical index are removed', () => {
 
 const profileSource = fs.readFileSync(path.join(root, 'profile.js'), 'utf8');
 const phonePrivacyMigration = fs.readFileSync(
-  path.join(root, 'supabase', 'migrations', '202611030002_make_phone_discovery_opt_in.sql'),
+  path.join(root, 'supabase', 'migrations', '20261103072149_make_phone_discovery_opt_in.sql'),
   'utf8'
 );
 
@@ -68,7 +68,7 @@ test('phone discovery is opt-in for new or missing privacy records', () => {
 });
 
 const groupPollMigration = fs.readFileSync(
-  path.join(root, 'supabase', 'migrations', '202611030003_harden_group_poll_rpcs.sql'),
+  path.join(root, 'supabase', 'migrations', '20261103072825_harden_group_poll_rpcs.sql'),
   'utf8'
 );
 
@@ -99,7 +99,7 @@ test('group poll voting is bounded, rate-limited, member-only, and serialized wi
 });
 
 const voteRateLimitMigration = fs.readFileSync(
-  path.join(root, 'supabase', 'migrations', '202611030004_ensure_group_poll_vote_rate_limit.sql'),
+  path.join(root, 'supabase', 'migrations', '20261103073143_ensure_group_poll_vote_rate_limit.sql'),
   'utf8'
 );
 
@@ -111,7 +111,7 @@ test('group poll vote rate limiting is present after validation and before vote 
 });
 
 const profileMediaMigration = fs.readFileSync(
-  path.join(root, 'supabase', 'migrations', '20261104085400_restrict_profile_media_read_to_owner.sql'),
+  path.join(root, 'supabase', 'migrations', '20261104075821_restrict_profile_media_read_to_owner.sql'),
   'utf8'
 );
 
@@ -125,7 +125,7 @@ test('private profile media is readable only by its owning user', () => {
 });
 
 const definerSearchPathMigration = fs.readFileSync(
-  path.join(root, 'supabase', 'migrations', '20261104090000_set_trusted_search_paths_for_definers.sql'),
+  path.join(root, 'supabase', 'migrations', '20261104080017_set_trusted_search_paths_for_definers.sql'),
   'utf8'
 );
 
@@ -138,7 +138,7 @@ test('remaining SECURITY DEFINER routines use a trusted search path', () => {
 
 
 const avatarStorageMigration = fs.readFileSync(
-  path.join(root, 'supabase', 'migrations', '202611050001_harden_avatar_storage_uploads.sql'),
+  path.join(root, 'supabase', 'migrations', '20261105080049_harden_avatar_storage_uploads.sql'),
   'utf8'
 );
 
