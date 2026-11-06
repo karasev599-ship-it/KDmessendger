@@ -32,6 +32,10 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ error: 'Некорректный JSON.' });
     }
 
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
+      return res.status(400).json({ error: 'Ожидается JSON-объект с полем message.' });
+    }
+
     const message = typeof body.message === 'string' ? body.message.trim() : '';
     if (!message) return res.status(400).json({ error: 'Напиши вопрос.' });
     if (message.length > 6000) return res.status(413).json({ error: 'Сообщение слишком длинное (максимум 6000 символов).' });
