@@ -160,3 +160,17 @@ test('public avatar buckets have bounded raster-image uploads', () => {
   assert.ok(avatarStorageMigration.includes("'image/webp'"));
   assert.ok(!avatarStorageMigration.toLowerCase().includes('image/svg+xml'));
 });
+
+
+const apiRateLimitMigration = fs.readFileSync(
+  path.join(root, 'supabase', 'migrations', '20261109074713_harden_api_rate_limit_inputs.sql'),
+  'utf8'
+);
+
+test('shared API rate limiter validates keys and uses a trusted search path', () => {
+  assert.match(apiRateLimitMigration, /set search_path = pg_catalog, public/i);
+  assert.ok(apiRateLimitMigration.includes("p_bucket !~ '^[a-z0-9_]{1,48}$'"));
+  assert.ok(apiRateLimitMigration.includes("p_subject_hash !~ '^[0-9a-f]{32,64}$'"));
+  assert.match(apiRateLimitMigration, /revoke all on function public\\.check_api_rate_limit\\(text, text, integer, integer\\) from public, anon, authenticated/i);
+  assert.match(apiRateLimitMigration, /grant execute on function public\\.check_api_rate_limit\\(text, text, integer, integer\\) to service_role/i);
+});
