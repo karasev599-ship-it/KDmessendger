@@ -22,7 +22,7 @@ function createResponse() {
 }
 
 async function withMockedEnvironment(values, run) {
-  const keys = ['OPENAI_API_KEY', 'SUPABASE_SERVICE_ROLE_KEY'];
+  const keys = ['OPENAI_API_KEY', 'SUPABASE_SERVICE_ROLE_KEY', 'NODE_ENV'];
   const previous = Object.fromEntries(keys.map(key => [key, process.env[key]]));
   const previousFetch = global.fetch;
 
@@ -89,6 +89,33 @@ test('missing authentication is rejected before revealing AI configuration state
 
     assert.equal(res.statusCode, 401);
     assert.equal(calls, 0);
+  });
+});
+
+test('production AI requests fail closed when shared rate limiting is not configured', async () => {
+  await withMockedEnvironment({
+    OPENAI_API_KEY: 'test-openai-key',
+    NODE_ENV: 'production'
+  }, async () => {
+    const calls = [];
+    global.fetch = async url => {
+      calls.push(String(url));
+      if (String(url).endsWith('/auth/v1/user')) {
+        return { ok: true, json: async () => ({ id: 'user-1' }) };
+      }
+      throw new Error('Rate limiting and OpenAI must not be called without the shared limiter secret');
+    };
+
+    const res = createResponse();
+    await handler({
+      method: 'POST',
+      headers: { authorization: 'Bearer test-token' },
+      body: { message: 'Привет' }
+    }, res);
+
+    assert.equal(res.statusCode, 503);
+    assert.equal(calls.length, 1);
+    assert.ok(calls[0].endsWith('/auth/v1/user'));
   });
 });
 
