@@ -46,6 +46,12 @@ module.exports = async function handler(req, res) {
     const now = Date.now();
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+    if (!serviceRoleKey && process.env.NODE_ENV === 'production') {
+      // Never silently downgrade to a per-instance limiter in serverless production.
+      console.error('KD AI rate-limit check unavailable: SUPABASE_SERVICE_ROLE_KEY is not configured');
+      return res.status(503).json({ error: 'AI временно недоступен: защита от превышения лимита не настроена. Попробуй позже.' });
+    }
+
     if (serviceRoleKey) {
       // Prefer the database-backed limiter in serverless deployments so limits are shared across instances.
       const subjectHash = crypto.createHash('sha256').update(account.id).digest('hex');
