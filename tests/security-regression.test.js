@@ -163,7 +163,7 @@ test('public avatar buckets have bounded raster-image uploads', () => {
 
 
 const apiRateLimitMigration = fs.readFileSync(
-  path.join(root, 'supabase', 'migrations', '20261109074713_harden_api_rate_limit_inputs.sql'),
+  path.join(root, 'supabase', 'migrations', '20261109075824_harden_api_rate_limit_inputs.sql'),
   'utf8'
 );
 
