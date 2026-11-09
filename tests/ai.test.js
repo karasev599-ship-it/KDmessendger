@@ -115,7 +115,7 @@ test('production AI requests fail closed when shared rate limiting is not config
 
     assert.equal(res.statusCode, 503);
     assert.equal(calls.length, 1);
-    assert.match(calls[0], /\\/auth\\/v1\\/user$/);
+    assert.ok(calls[0].endsWith('/auth/v1/user'));
   });
 });
 
