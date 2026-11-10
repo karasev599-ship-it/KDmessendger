@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const migration = fs.readFileSync(
-  path.join(__dirname, '..', 'supabase', 'migrations', '20261110090630_require_membership_for_message_media_delete.sql'),
+  path.join(__dirname, '..', 'supabase', 'migrations', '20261110081136_require_membership_for_message_media_delete.sql'),
   'utf8'
 );
 
