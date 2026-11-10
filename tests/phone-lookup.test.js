@@ -25,3 +25,16 @@ test('rate-limit errors are surfaced as a retryable phonebook message', () => {
   assert.ok(contacts.includes("x.error.code==='P0001'"));
   assert.ok(privacy.includes("search.error.code==='P0001'"));
 });
+
+const migration = fs.readFileSync(
+  path.join(root, 'supabase', 'migrations', '20261110075517_fix_phone_lookup_number_validation.sql'),
+  'utf8'
+);
+
+test('phone lookup validates E.164-sized candidates and charges by batch size', () => {
+  assert.ok(migration.includes("item.phone !~ '^[+]?[0-9]{7,15}$'"));
+  assert.ok(migration.includes('ceil(cardinality(p_phones)::numeric / 100)::integer'));
+  assert.ok(migration.includes("check_api_rate_limit('phone_lookup'"));
+  assert.ok(migration.includes('60, 20'));
+  assert.ok(migration.includes('coalesce(up.discover_by_phone, false) = true'));
+});
