@@ -46,3 +46,13 @@ test('call inbox is readable only by its recipient and writable only by a direct
   assert.ok(migration.includes("recipient.user_id <> caller.user_id"));
   assert.ok(migration.includes("caller.conversation_id::text = coalesce(payload->>'conversationId', '')"));
 });
+
+test('caller sends a private ring without subscribing to the recipient inbox', () => {
+  const create = calls.indexOf("const inbox=sb.channel('kd-call-inbox-'+other,{config:{private:true}});");
+  const send = calls.indexOf('sent=await inbox.send(', create);
+  const remove = calls.indexOf('await sb.removeChannel(inbox)', create);
+  const subscribe = calls.indexOf('inbox.subscribe(', create);
+  assert.ok(create >= 0 && send > create && remove > send);
+  assert.equal(subscribe, -1, 'sender must not subscribe to the recipient-only inbox topic');
+  assert.ok(calls.includes("if(sent!=='ok')throw Error('Не удалось отправить приглашение')"));
+});
