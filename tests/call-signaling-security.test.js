@@ -56,3 +56,23 @@ test('caller sends a private ring without subscribing to the recipient inbox', (
   assert.equal(subscribe, -1, 'sender must not subscribe to the recipient-only inbox topic');
   assert.ok(calls.includes("if(sent!=='ok')throw Error('Не удалось отправить приглашение')"));
 });
+
+test('call ECDH uses deriveBits and keeps the private and AES keys non-extractable', () => {
+  assert.ok(calls.includes("generateKey({name:'ECDH',namedCurve:'P-256'},false,['deriveBits'])"));
+  assert.ok(calls.includes("crypto.subtle.deriveBits({name:'ECDH',public:publicKey},keyPair.privateKey,256)"));
+  assert.ok(calls.includes("crypto.subtle.importKey('raw',shared,{name:'AES-GCM'},false,['encrypt','decrypt'])"));
+  assert.ok(!calls.includes("crypto.subtle.exportKey('raw',cryptoKey)"));
+});
+
+test('call E2EE attaches after key derivation or remote track and avoids duplicate transforms', () => {
+  assert.ok(calls.includes('e2eeAttached=false,peerKeyConfirmed=false,e2eeUnavailable=false'));
+  assert.ok(calls.includes('attachE2EE();return true'));
+  assert.ok(calls.includes("pc.ontrack=e=>{remote.srcObject=e.streams[0];setTimeout(attachE2EE,0)}"));
+  assert.ok(calls.includes('if(!pc||!cryptoKey||e2eeAttached||e2eeUnavailable)return'));
+  assert.ok(calls.includes("typeof x.createEncodedStreams!=='function'"));
+});
+
+test('call UI only labels application-layer E2EE when transforms are attached', () => {
+  assert.ok(calls.includes("peerKeyConfirmed=true;if(e2eeAttached)$('#kdSecure').textContent='🔐 E2E • общий секрет совпал'"));
+  assert.ok(calls.includes("$('#kdSecure').textContent='🔒 WebRTC DTLS-SRTP'"));
+});
