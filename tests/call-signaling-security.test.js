@@ -1,5 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const { webcrypto } = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 
@@ -84,4 +85,30 @@ test('E2EE transforms are attached to newly arriving RTP tracks without duplicat
   assert.ok(calls.includes('encryptedSenders.add(x)'));
   assert.ok(calls.includes('encryptedReceivers.add(x)'));
   assert.ok(!calls.includes('if(!pc||!cryptoKey||e2eeAttached||e2eeUnavailable)return'));
+});
+
+test('non-extractable ECDH and AES-GCM keys derive the same secret and encrypt frames', async () => {
+  const a = await webcrypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, false, ['deriveBits']);
+  const b = await webcrypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, false, ['deriveBits']);
+  assert.equal(a.privateKey.extractable, false);
+  assert.equal(a.publicKey.extractable, true);
+
+  const aPublic = await webcrypto.subtle.exportKey('raw', a.publicKey);
+  const bPublic = await webcrypto.subtle.exportKey('raw', b.publicKey);
+  const aPeer = await webcrypto.subtle.importKey('raw', bPublic, { name: 'ECDH', namedCurve: 'P-256' }, false, []);
+  const bPeer = await webcrypto.subtle.importKey('raw', aPublic, { name: 'ECDH', namedCurve: 'P-256' }, false, []);
+  const aShared = await webcrypto.subtle.deriveBits({ name: 'ECDH', public: aPeer }, a.privateKey, 256);
+  const bShared = await webcrypto.subtle.deriveBits({ name: 'ECDH', public: bPeer }, b.privateKey, 256);
+  assert.deepEqual(new Uint8Array(aShared), new Uint8Array(bShared));
+
+  const aKey = await webcrypto.subtle.importKey('raw', aShared, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
+  const bKey = await webcrypto.subtle.importKey('raw', bShared, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
+  assert.equal(aKey.extractable, false);
+  await assert.rejects(webcrypto.subtle.exportKey('raw', aKey), error => /extractable/i.test(error.message));
+
+  const iv = webcrypto.getRandomValues(new Uint8Array(12));
+  const plain = new Uint8Array([1, 2, 3, 4, 5]);
+  const cipher = await webcrypto.subtle.encrypt({ name: 'AES-GCM', iv }, aKey, plain);
+  const decoded = await webcrypto.subtle.decrypt({ name: 'AES-GCM', iv }, bKey, cipher);
+  assert.deepEqual(new Uint8Array(decoded), plain);
 });
